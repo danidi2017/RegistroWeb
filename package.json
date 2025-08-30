@@ -1,0 +1,28 @@
+{
+  "name": "registroweb",
+  "version": "1.0.0",
+  "description": "E2E test registro",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "cypress :open": "cypress open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danidi2017/RegistroWeb.git"
+  },
+  "keywords": [
+    "E2E",
+    "automations",
+    "cypress"
+  ],
+  "author": "Daniel Diaz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/danidi2017/RegistroWeb/issues"
+  },
+  "homepage": "https://github.com/danidi2017/RegistroWeb#readme",
+  "devDependencies": {
+    "cypress": "^15.0.0"
+  }
+}
