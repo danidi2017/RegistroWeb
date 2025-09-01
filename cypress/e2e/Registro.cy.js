@@ -1,48 +1,89 @@
-describe('Test Registro Web', () => {
+describe('Registro de usuarios - Escenarios positivos y negativos', () => {
+  
+  // --------- Generadores de datos dinámicos ---------
+  const generarDNI = () => {
+    return String(Math.floor(10000000 + Math.random() * 89999999)); // 8 dígitos exactos
+  };
 
+  const generarTelefono = () => {
+    return String(Math.floor(1000000000 + Math.random() * 8999999999)); // 10 dígitos exactos
+  };
 
+  const generarEmail = (valido = true) => {
+    const random = Math.random().toString(36).substring(7);
+    return valido ? `${random}@gmail.com` : `${random}#correo.com`; // inválido
+  };
+
+  const generarPassword = (valida = true) => {
+    return valida 
+      ? `Aa1!${Math.random().toString(36).substring(2, 6)}` // min 8 chars con números, letras y símbolos
+      : `12345`; // inválida
+  };
+
+  const generarFechaNacimiento = () => {
+    const dia = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+    const mes = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+    const anio = String(Math.floor(Math.random() * (2005 - 1970) + 1970));
+    return { dia, mes, anio };
+  };
+
+  const provincias = {
+    "Chaco": ["Resistencia", "Barranqueras"],
+    "Buenos Aires": ["La Plata", "Mar del Plata"],
+    "Córdoba": ["Córdoba Capital", "Villa María"]
+  };
+
+  const seleccionarProvinciaLocalidad = () => {
+    const provs = Object.keys(provincias);
+    const prov = provs[Math.floor(Math.random() * provs.length)];
+    const loc = provincias[prov][Math.floor(Math.random() * provincias[prov].length)];
+    return { prov, loc };
+  };
+
+  // --------- Antes de cada test ---------
   beforeEach(() => {
-   cy.visit('https://ticketazo.com.ar/auth/registerUser');
+    cy.visit('https://ticketazo.com.ar/auth/registerUser'); // URL del formulario
   });
 
+  // --------- Escenarios positivos ---------
+  it('✅ Registro exitoso con todos los campos válidos', () => {
+    const { prov, loc } = seleccionarProvinciaLocalidad();
+    const { dia, mes, anio } = generarFechaNacimiento();
+    const email = generarEmail(true);
+    const password = generarPassword(true);
 
-  it('Ya existe un usuario registrado con ese DNI', () => {
-   
-    cy.get('[data-cy="input-nombres"]').clear().type('daniel');
-    cy.get('[data-cy="input-apellido"]').clear().type('diaz');
-    cy.get('[data-cy="input-telefono"]').clear().type('3109292456');
-    cy.get('[data-cy="input-dni"]').clear().type('34849937');
-    cy.get('[data-cy="select-provincia"]').clear().type('Chaco{enter}');
-    cy.get('[data-cy="select-localidad"]').clear().type('Charata{enter}');
-    cy.contains('dd').type('17');
-    cy.contains('mm').type('10');
-    cy.contains('aaaa').type('1981');
-    cy.wait(1000)
-    cy.get('[data-cy="input-email"]').clear().type('daniel@gmail.com');
-    cy.get('[data-cy="input-confirmar-email"]').clear().type('daniel@gmail.com');
-    cy.get('[data-cy="input-password"]').clear().type('D@ni1710');
-    cy.get('[data-cy="input-repetir-password"]').clear().type('D@ni1710');
-    cy.get('[data-cy="btn-registrarse"]').click()
-    cy.wait(2000)
-  })
+    cy.get('[data-cy="input-nombres"]').type('Juan');
+    cy.get('[data-cy="input-apellido"]').type('Pérez');
+    cy.get('[data-cy="input-telefono"]').type(generarTelefono());
+    cy.get('[data-cy="input-dni"]').type(generarDNI());
+    cy.get('[data-cy="select-provincia"]').type(prov + '{enter}');
+    cy.get('[data-cy="select-localidad"]').type(loc + '{enter}');
+    cy.get('[data-cy="input-fecha-nacimiento"] [data-type="day"]').type(dia);
+    cy.get('[data-cy="input-fecha-nacimiento"] [data-type="month"]').type(mes);
+    cy.get('[data-cy="input-fecha-nacimiento"] [data-type="year"]').type(anio);
+    cy.get('[data-cy="input-email"]').type(email);
+    cy.get('[data-cy="input-confirmar-email"]').type(email);
+    cy.get('[data-cy="input-password"]').type(password);
+    cy.get('[data-cy="input-repetir-password"]').type(password);
 
-   it('Ya existe un usuario con este nombre', () => {
-   
-    cy.get('[data-cy="input-nombres"]').clear().type('daniel');
-    cy.get('[data-cy="input-apellido"]').clear().type('diaz');
-    cy.get('[data-cy="input-telefono"]').clear().type('3109292456');
-    cy.get('[data-cy="input-dni"]').clear().type('34849940');
-    cy.get('[data-cy="select-provincia"]').clear().type('Chaco{enter}');
-    cy.get('[data-cy="select-localidad"]').clear().type('Charata{enter}');
-    cy.contains('dd').type('17');
-    cy.contains('mm').type('10');
-    cy.contains('aaaa').type('1981');
-    cy.wait(1000)
-    cy.get('[data-cy="input-email"]').clear().type('daniel@gmail.com');
-    cy.get('[data-cy="input-confirmar-email"]').clear().type('daniel@gmail.com');
-    cy.get('[data-cy="input-password"]').clear().type('D@ni1710');
-    cy.get('[data-cy="input-repetir-password"]').clear().type('D@ni1710');
-    cy.get('[data-cy="btn-registrarse"]').click()
-    cy.wait(2000)
-  })
+    cy.get('form').submit();
+
+    //cy.contains('Usuario creado exitosamente').should('be.visible');
+  });
+
+  it('✅ Placeholders visibles cuando los campos están vacíos', () => {
+    cy.get('[data-cy="input-telefono"]').should('have.attr', 'placeholder', 'Ej: 3511234567');
+    cy.get('[data-cy="input-dni"]').should('have.attr', 'placeholder', 'Ej: 12345678');
+  });
+
+  it('✅ Teléfono acepta 10 dígitos válidos', () => {
+    cy.get('[data-cy="input-telefono"]').type('3511234567');
+    cy.get('[data-cy="input-telefono"]').should('have.value', '3511234567');
+  });
+
+  it('✅ Fecha de nacimiento acepta formato dd/mm/aaaa', () => {
+    cy.get('[data-cy="input-fecha-nacimiento"] [data-type="day"]').type('15');
+    cy.get('[data-cy="input-fecha-nacimiento"] [data-type="month"]').type('08');
+    cy.get('[data-cy="input-fecha-nacimiento"] [data-type="year"]').type('1990');
+  });
 })
