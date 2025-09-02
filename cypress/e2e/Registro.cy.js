@@ -86,4 +86,34 @@ describe('Registro de usuarios - Escenarios positivos y negativos', () => {
     cy.get('[data-cy="input-fecha-nacimiento"] [data-type="month"]').type('08');
     cy.get('[data-cy="input-fecha-nacimiento"] [data-type="year"]').type('1990');
   });
+
+  // --------- Escenarios negativos ---------
+  it('❌ Email inválido muestra error', () => {
+    const emailInvalido = generarEmail(false);
+
+    cy.get('[data-cy="input-email"]').type(emailInvalido);
+    cy.get('[data-cy="input-confirmar-email"]').type(emailInvalido);
+    cy.get('form').submit();
+
+    cy.contains('El correo electrónico no es válido.').should('be.visible');
+  });
+
+  it('❌ Intentar enviar formulario con campos vacíos', () => {
+    cy.get('form').submit();
+    cy.contains('El nombre es obligatorio.').should('be.visible');
+  });
+
+  it('❌ Teléfono no debe aceptar letras', () => {
+    cy.get('[data-cy="input-telefono"]').type('abcde');
+    cy.get('form').submit();
+    cy.contains('El número de teléfono es obligatorio').should('be.visible');
+  });
+
+  it('❌ Contraseña inválida (menos de 8 caracteres)', () => {
+    cy.get('[data-cy="input-password"]').type('12345');
+    cy.get('[data-cy="input-repetir-password"]').type('12345');
+    cy.get('form').submit();
+
+    cy.contains('La contraseña debe tener al menos 6 caracteres.').should('be.visible');
+  });
 })
